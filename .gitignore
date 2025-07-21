@@ -1,7 +1,8 @@
-
 .env
 .note.md
 venv/
+db.sqlite3
 # Python
 __pycache__/
 *.py[cod]
+*.pyc
