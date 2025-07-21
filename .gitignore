@@ -2,3 +2,6 @@
 .env
 .note.md
 venv/
+# Python
+__pycache__/
+*.py[cod]
