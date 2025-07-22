@@ -21,3 +21,8 @@ pip install -r requirements.txt
 ### Créer une branche de suivi pour develop
 - git checkout -b  develop origin/develop
 
+# Pour etendre Postgres a Postgis
+
+## Au besoin vous changer le nom de la bd dans le fichier
+chmod +x install_postgis.sh
+sudo ./install_postgis.sh
