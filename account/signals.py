@@ -15,6 +15,7 @@ def setup_groups_and_permissions(sender, **kwargs):
     Bloc = apps.get_model('lotissement', 'Bloc')
     Rue = apps.get_model('lotissement', 'Rue')
 
+
     # Créer les groupes
     group_superuser, _ = Group.objects.get_or_create(name='super_administrateurs')
     group_admin, _ = Group.objects.get_or_create(name='administrateurs_cadastraux')

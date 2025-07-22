@@ -1,7 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from lotissement.models import Parcelle
 from django.core.validators import RegexValidator
+from rest_framework.permissions import BasePermission
 
 >>>>>>> Stashed changes
 
@@ -11,13 +11,13 @@ class User(models.Model):
     username = models.CharField(max_length = 50, blank = True, null = True, unique = True)
     email = models.EmailField('email address', unique = True)
 
-    genre = models.CharField('Genre', max_length=1, choices=[('M', 'Male'), ('F', 'Female')])
+    genre = models.CharField('Genre', max_length=10, choices=[('M', 'Male'), ('F', 'Female')], default='M')
     date_naissance = models.DateField(blank=True, null=True)
     id_cadastrale = models.CharField(max_length=50, unique=True)
     num_cni = models.CharField(max_length=50, unique=True)
     addresse = models.CharField(max_length=50, unique=True)
     num_tel_regex = RegexValidator(regex=r'^6\d{8}$', message="Le numéro doit contenir exactement 9 chiffres et commencer par 6.")
-    num_telephone = models.CharField('Telephone', max_lenght=9, validators=num_tel_regex , unique=True)
+    num_telephone = models.CharField('Telephone', max_length=9, validators=[num_tel_regex] , unique=True)
     
     ACCOUNT_TYPE_CHOICES = [
         ('IND', 'Individu'),
@@ -46,6 +46,21 @@ class User(models.Model):
                     Email : ({self.email})]\n"
 
     USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []
     
 
-      
+
+
+
+
+class IsSuperAdministrateur(BasePermission):
+    def has_permission(self, request, view):
+        return request.user and request.user.groups.filter(name='super_administrateurs').exists()
+
+class IsAdministrateurCadastral(BasePermission):
+    def has_permission(self, request, view):
+        return request.user and request.user.groups.filter(name='administrateurs_cadastraux').exists()
+
+class IsProprietaire(BasePermission):
+    def has_permission(self, request, view):
+        return request.user and request.user.groups.filter(name='proprietaires').exists()
