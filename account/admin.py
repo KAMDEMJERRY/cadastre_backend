@@ -1,31 +1,27 @@
 from django.contrib import admin
-
-# Register your models here.
+from django.contrib.auth.admin import UserAdmin
 from .models import User
 
-@admin.register(User)
-class UserAdmin(admin.ModelAdmin):
-    list_display = [
-        'full_name', 'email', 'cni', 'id_cadastrale', 
-        'type_proprietaire', 'role', 'is_active', 'date_creation'
-    ]
-    list_filter = ['type_proprietaire', 'role', 'is_active', 'date_creation']
-    search_fields = ['nom', 'prenom', 'email', 'cni', 'id_cadastrale']
-    readonly_fields = ['date_creation', 'date_modification', 'date_activation']
-    
+class CustomUserAdmin(UserAdmin):
+    model = User
+    list_display = ('email', 'username', 'account_type', 'is_active', 'is_staff')
+    list_filter = ('account_type', 'is_active', 'is_staff')
     fieldsets = (
-        ('Informations personnelles', {
-            'fields': ('nom', 'prenom', 'email', 'cni', 'id_cadastrale')
-        }),
-        ('Paramètres', {
-            'fields': ('type_proprietaire', 'role', 'is_active')
-        }),
-        ('Dates', {
-            'fields': ('date_creation', 'date_modification', 'date_activation'),
-            'classes': ('collapse',)
-        }),
+        (None, {'fields': ('email', 'username', 'password')}),
+        ('Personal Info', {'fields': ('genre', 'date_naissance', 'id_cadastrale', 'num_cni', 'addresse', 'num_telephone')}),
+        ('Account Type', {'fields': ('account_type', 'domaine', 'nom_organization')}),
+        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
+        ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
-    
-    def full_name(self, obj):
-        return obj.full_name
-    full_name.short_description = 'Nom complet'
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('email', 'username', 'password1', 'password2', 'account_type', 'is_active', 'is_staff')}
+        ),
+    )
+    search_fields = ('email', 'username', 'id_cadastrale', 'num_cni')
+    ordering = ('email',)
+    filter_horizontal = ('groups', 'user_permissions',)
+
+# Enregistrer le modèle User avec la classe CustomUserAdmin
+admin.site.register(User, CustomUserAdmin)

@@ -5,7 +5,7 @@ from rest_framework.permissions import BasePermission
 
 
 # Create your models here.
-class User(models.Model):
+class User(AbstractUser):
     id = models.AutoField(primary_key=True)
     username = models.CharField(max_length = 50, blank = True, null = True, unique = True)
     email = models.EmailField('email address', unique = True)
