@@ -45,4 +45,5 @@ class Parcelle(Geometry):
 
 class Rue(Geometry):
     name = models.CharField(max_length=100, unique=True)
-    
+    created_at = models.DateTimeField(auto_now_add=True)  # Ajoutez ceci
+    updated_at = models.DateTimeField(auto_now=True)      
