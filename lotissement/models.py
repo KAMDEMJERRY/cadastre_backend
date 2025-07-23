@@ -7,7 +7,7 @@ class Geometry(models.Model):
     longeur = models.FloatField()
     superficie_m2 = models.FloatField(default=0, verbose_name="Superficie (m²)")
     perimetre_m = models.FloatField(default=0, verbose_name="Périmètre (m)")
-    geom = gis_models.PolygonField(srid=4326, verbose_name="Polygone de la parcelle")
+    geom = gis_models.PolygonField(srid=4326, verbose_name="Polygone de la parcelle", null=True)
     
     class Meta:
         abstract: True
@@ -29,7 +29,7 @@ class Lotissement(Geometry):
         ordering = ['name']
 
 class Bloc(Geometry):
-    name = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=100, unique=True, null=True)
     bloc_lotissement = models.ForeignKey(Lotissement, on_delete=models.CASCADE)
     description = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)

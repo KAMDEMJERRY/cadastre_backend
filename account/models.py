@@ -13,11 +13,12 @@ class User(AbstractUser):
     genre = models.CharField('Genre', max_length=10, choices=[('M', 'Male'), ('F', 'Female')], default='M')
     date_naissance = models.DateField(blank=True, null=True)
     id_cadastrale = models.CharField(max_length=50, unique=True)
-    num_cni = models.CharField(max_length=50, unique=True)
-    addresse = models.CharField(max_length=50, unique=True)
+    num_cni = models.CharField(max_length=50, unique=True, null=True)
+    addresse = models.CharField(max_length=50, unique=True, null=True)
     num_tel_regex = RegexValidator(regex=r'^6\d{8}$', message="Le numéro doit contenir exactement 9 chiffres et commencer par 6.")
-    num_telephone = models.CharField('Telephone', max_length=9, validators=[num_tel_regex] , unique=True)
+    num_telephone = models.CharField('Telephone', max_length=9, validators=[num_tel_regex] , unique=True, null=True)
     
+
     ACCOUNT_TYPE_CHOICES = [
         ('IND', 'Individu'),
         ('ORG', 'Organisation'),
