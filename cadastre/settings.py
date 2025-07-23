@@ -39,13 +39,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
+    'django.contrib.gis',
+    'rest_framework_gis',
 
     'rest_framework',
     # 'django_filters',
     'drf_yasg',
-
-
     'account',
     'lotissement',
 ]
