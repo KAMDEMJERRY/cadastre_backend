@@ -30,7 +30,7 @@ class Lotissement(Geometry):
 
 class Bloc(Geometry):
     name = models.CharField(max_length=100, unique=True)
-    lotissement = models.ForeignKey(Lotissement, on_delete=models.CASCADE)
+    bloc_lotissement = models.ForeignKey(Lotissement, on_delete=models.CASCADE)
     description = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -38,7 +38,7 @@ class Bloc(Geometry):
       return f"Bloc {self.name} - {self.lotissement.name}"
 
 class Parcelle(Geometry):
-    bloc = models.ForeignKey(Bloc, on_delete=models.CASCADE, related_name='parcelles')
+    parcelle_bloc = models.ForeignKey(Bloc, on_delete=models.CASCADE, related_name='parcelles')
     proprietaire = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -3,7 +3,6 @@ from django.db import models
 from django.core.validators import RegexValidator
 from rest_framework.permissions import BasePermission
 
->>>>>>> Stashed changes
 
 # Create your models here.
 class User(models.Model):
@@ -40,6 +39,23 @@ class User(models.Model):
     def is_organization(self):
         return self.account_type == self.ORGANISATION
 
+    # Ajoutez ces propriétés requises
+    @property
+    def is_anonymous(self):
+        """
+        Toujours retourner False pour les utilisateurs authentifiés.
+        Requis par Django pour la compatibilité.
+        """
+        return False
+
+    @property
+    def is_authenticated(self):
+        """
+        Toujours retourner True pour les utilisateurs authentifiés.
+        Requis par Django pour la compatibilité.
+        """
+        return True
+    
     def __str__(self):
         return f"\n[Prenom : {self.prenom}\n\
                     Nom : {self.nom}\n\
@@ -48,11 +64,6 @@ class User(models.Model):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
     
-
-
-
-
-
 class IsSuperAdministrateur(BasePermission):
     def has_permission(self, request, view):
         return request.user and request.user.groups.filter(name='super_administrateurs').exists()
@@ -60,7 +71,7 @@ class IsSuperAdministrateur(BasePermission):
 class IsAdministrateurCadastral(BasePermission):
     def has_permission(self, request, view):
         return request.user and request.user.groups.filter(name='administrateurs_cadastraux').exists()
-
+    
 class IsProprietaire(BasePermission):
     def has_permission(self, request, view):
         return request.user and request.user.groups.filter(name='proprietaires').exists()
