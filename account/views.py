@@ -57,15 +57,15 @@ class UserViewSet(viewsets.ModelViewSet):
 
     # Filtrage avancé
     def get_queryset(self):
-        queryset = super().get_queryset()
+        queryset = User.object.all()
         search = self.request.query_params.get('search')
         
         if search:
             queryset = queryset.filter(
-                Q(username__icontains=search) |
-                Q(email__icontains=search) |
-                Q(num_cni__icontains=search) |
-                Q(nom_organization__icontains=search) |
+                Q(username__icontains=search) or
+                Q(email__icontains=search) or
+                Q(num_cni__icontains=search) or
+                Q(nom_organization__icontains=search) or
                 Q(addresse__icontains=search)
             )
         return queryset
