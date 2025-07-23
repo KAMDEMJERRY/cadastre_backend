@@ -3,10 +3,11 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
-from .models import IsAdministrateurCadastral, IsProprietaire, IsSuperAdministrateur, User
+from rest_framework.permissions import IsAuthenticated
+from .models import IsAdministrateurCadastral, IsProprietaire, IsSuperAdministrateur
 from .serializers import UserSerializer, UserCreateSerializer, UserUpdateSerializer
-
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 class UserViewSet(viewsets.ModelViewSet):
     """
@@ -15,7 +16,9 @@ class UserViewSet(viewsets.ModelViewSet):
     - Filtres avancés
     - Actions personnalisées
     """
-    queryset = User.objects.all()
+
+    def get_queryset(self):
+        return User.objects.all()
     serializer_class = UserSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = [
