@@ -7,24 +7,32 @@ class UserSerializer(serializers.ModelSerializer):
     full_name = serializers.SerializerMethodField()
     account_type_display = serializers.CharField(source='get_account_type_display', read_only=True)
     genre_display = serializers.CharField(source='get_genre_display', read_only=True)
-
+    role = serializers.SerializerMethodField()
     class Meta:
         model = User
         fields = [
             'id', 'username', 'email', 'genre', 'genre_display', 'date_naissance',
             'id_cadastrale', 'num_cni', 'addresse', 'num_telephone',
             'account_type', 'account_type_display', 'domaine', 'nom_organization',
-            'is_active', 'date_joined', 'last_login', 'full_name'
+            'is_active', 'date_joined', 'last_login', 'full_name', 'role'
         ]
         read_only_fields = [
             'id', 'date_joined', 'last_login', 'account_type_display',
-            'genre_display', 'full_name'
+            'genre_display', 'full_name', 'role'
         ]
         extra_kwargs = {
             'num_telephone': {'validators': []},  # Désactive la validation par défaut pour permettre la mise à jour
             'num_cni': {'validators': []},
             'id_cadastrale': {'validators': []}
         }
+
+    def get_role(self, obj):
+        if obj.role == 'super_administrateurs':
+            return 'admin'
+        elif obj.role == 'administrateurs_cadastraux':
+            return 'agent'
+        else:
+            return 'proprietaire'
 
     def get_full_name(self, obj):
         return f"{obj.prenom} {obj.nom}" if obj.prenom and obj.nom else obj.username

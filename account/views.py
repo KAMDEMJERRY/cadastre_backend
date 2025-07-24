@@ -57,7 +57,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
     # Filtrage avancé
     def get_queryset(self):
-        queryset = User.object.all()
+        queryset = User.objects.all()
         search = self.request.query_params.get('search')
         
         if search:
@@ -172,3 +172,8 @@ class UserViewSet(viewsets.ModelViewSet):
             },
             status=status.HTTP_200_OK
         )
+    
+    @action(detail=False, methods=['get'],permission_classes=[IsAuthenticated])
+    def me(self, request):
+        serializer = self.get_serializer(request.user)
+        return Response(serializer.data)

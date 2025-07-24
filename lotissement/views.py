@@ -54,8 +54,18 @@ class ParcelleViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_superuser or user.groups.filter(name='administrateur').exists():
+    
+        # Si l'utilisateur n'est pas authentifié, retourner un queryset vide
+        if not user.is_authenticated:
+            return Parcelle.objects.none()
+        
+        # Si l'utilisateur est superadmin OU a la permission IsSuperAdministrateur OU IsAdministrateurCadastrale
+        if (user.is_superuser or 
+            user.has_perm('account.IsSuperAdministrateur') or 
+            user.has_perm('account.IsAdministrateurCadastrale')):
             return Parcelle.objects.all()
+        
+        # Sinon, retourner seulement les parcelles dont il est propriétaire
         return Parcelle.objects.filter(proprietaire=user)
 
 class RueViewSet(viewsets.ModelViewSet):
