@@ -1,22 +1,52 @@
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
-from lotissement.models import Parcelle
 from django.core.validators import RegexValidator
-
+from rest_framework.permissions import BasePermission
 
 # Create your models here.
+from django.contrib.auth.models import AbstractUser
+from django.db import models
+
+class CustomUserManager(BaseUserManager):
+    def create_user(self, email, password=None, **extra_fields):
+        if not email:
+            raise ValueError('The Email field must be set')
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        
+        # For superusers, CNI is not required - set a default
+        if 'num_cni' and 'addresse' and 'username' not in extra_fields:
+            extra_fields['num_cni'] = f'ADMIN_{email[:5]}'.upper()
+            extra_fields['addresse'] = f'ADMIN_{email[:5]}'.upper()
+            extra_fields['username'] = f'ADMIN_{email[:5]}'.upper()
+            extra_fields['num_telephone'] = f'{email[:5]}'.upper()
+            
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser must have is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True.')
+
+        return self.create_user(email, password, **extra_fields)
+
 class User(AbstractUser):
     id = models.AutoField(primary_key=True)
-    username = models.CharField(max_length = 50, blank = True, null = True, unique = True)
-    email = models.EmailField('email address', unique = True)
+    username = models.CharField(max_length=50, blank=True, null=True, unique=True)
+    email = models.EmailField('email address', unique=True)
 
-    genre = models.CharField('Genre', max_length=1, choices=[('M', 'Male'), ('F', 'Female')])
+    genre = models.CharField('Genre', max_length=10, choices=[('M', 'Male'), ('F', 'Female')], default='M')
     date_naissance = models.DateField(blank=True, null=True)
-    id_cadastrale = models.CharField(max_length=50, unique=True)
-    num_cni = models.CharField(max_length=50, unique=True)
-    addresse = models.CharField(max_length=50, unique=True)
+    id_cadastrale = models.CharField(max_length=50, unique=True, blank=True)
+    num_cni = models.CharField(max_length=50, unique=True, null=True, blank=True)
+    addresse = models.CharField(max_length=50, unique=True, null=True)
     num_tel_regex = RegexValidator(regex=r'^6\d{8}$', message="Le numéro doit contenir exactement 9 chiffres et commencer par 6.")
-    num_telephone = models.CharField('Telephone', max_lenght=9, validators=num_tel_regex , unique=True)
+    num_telephone = models.CharField('Telephone', max_length=9, validators=[num_tel_regex], unique=True, null=True)
     
     ACCOUNT_TYPE_CHOICES = [
         ('IND', 'Individu'),
@@ -30,21 +60,36 @@ class User(AbstractUser):
     )
 
     domaine = models.CharField(max_length=100, blank=True, null=True)
-    # Champs spécifiques aux organisations (optionnels)
     nom_organization = models.CharField(max_length=100, blank=True, null=True)   
     
     def is_individual(self):
-        return self.account_type == self.INDIVIDU
+        return self.account_type == 'IND'
 
     def is_organization(self):
-        return self.account_type == self.ORGANISATION
+        return self.account_type == 'ORG'
 
+    @property
+    def is_anonymous(self):
+        return False
+
+    @property
+    def is_authenticated(self):
+        return True
+    
     def __str__(self):
-        return f"\n[Prenom : {self.prenom}\n\
-                    Nom : {self.nom}\n\
-                    Email : ({self.email})]\n"
+        return f"User: {self.email}"
 
     USERNAME_FIELD = 'email'
-    
+    REQUIRED_FIELDS = []
+    objects = CustomUserManager()
+class IsSuperAdministrateur(BasePermission):
+    def has_permission(self, request, view):
+        return request.user and request.user.groups.filter(name='super_administrateurs').exists()
 
-      
+class IsAdministrateurCadastral(BasePermission):
+    def has_permission(self, request, view):
+        return request.user and request.user.groups.filter(name='administrateurs_cadastraux').exists()
+    
+class IsProprietaire(BasePermission):
+    def has_permission(self, request, view):
+        return request.user and request.user.groups.filter(name='proprietaires').exists()

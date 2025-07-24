@@ -1,5 +1,4 @@
 # cadastre/signals.py
-
 from django.db.models.signals import post_migrate
 from django.dispatch import receiver
 from django.contrib.auth.models import Group, Permission
@@ -7,13 +6,15 @@ from django.contrib.contenttypes.models import ContentType
 from django.apps import apps
 from django.contrib.auth import get_user_model
 
+
 @receiver(post_migrate)
 def setup_groups_and_permissions(sender, **kwargs):
     # Charger les modèles
     User = get_user_model()
-    Parcelle = apps.get_model('cadastre', 'Parcelle')
-    Bloc = apps.get_model('cadastre', 'Bloc')
-    Rue = apps.get_model('cadastre', 'Rue')
+    Parcelle = apps.get_model('lotissement', 'Parcelle')
+    Bloc = apps.get_model('lotissement', 'Bloc')
+    Rue = apps.get_model('lotissement', 'Rue')
+
 
     # Créer les groupes
     group_superuser, _ = Group.objects.get_or_create(name='super_administrateurs')
