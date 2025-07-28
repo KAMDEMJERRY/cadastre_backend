@@ -27,12 +27,19 @@ class UserSerializer(serializers.ModelSerializer):
         }
 
     def get_role(self, obj):
-        if obj.role == 'super_administrateurs':
-            return 'admin'
-        elif obj.role == 'administrateurs_cadastraux':
-            return 'agent'
-        else:
+        if obj is None or not hasattr(obj, 'groups'):
             return 'proprietaire'
+
+        try:
+            groups = set(obj.groups.values_list('name', flat=True))
+            if 'super_administrateurs' in groups:
+                return 'admin'
+            if 'administrateurs_cadastraux' in groups:
+                return 'agent'
+        except (AttributeError, ValueError):
+            pass
+
+        return 'proprietaire'
 
     def get_full_name(self, obj):
         return f"{obj.first_name} {obj.last_name}" if obj.first_name and obj.last_name else obj.username

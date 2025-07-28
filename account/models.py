@@ -7,6 +7,8 @@ from rest_framework.permissions import BasePermission
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+from django.contrib.auth.models import Group
+
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
@@ -18,23 +20,34 @@ class CustomUserManager(BaseUserManager):
         return user
 
     def create_superuser(self, email, password=None, **extra_fields):
+        # Configuration des champs par défaut pour le superutilisateur
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         
-        # For superusers, CNI is not required - set a default
-        if 'num_cni' and 'addresse' and 'username' not in extra_fields:
-            extra_fields['num_cni'] = f'ADMIN_{email[:5]}'.upper()
-            extra_fields['addresse'] = f'ADMIN_{email[:5]}'.upper()
-            extra_fields['username'] = f'ADMIN_{email[:5]}'.upper()
-            extra_fields['num_telephone'] = f'{email[:5]}'.upper()
-            
+        # Valeurs par défaut pour les champs obligatoires
+        default_username = f'admin_{email.split("@")[0]}'
+        extra_fields.setdefault('username', default_username)
+        extra_fields.setdefault('num_cni', f'ADMIN_CNI_{email[:5].upper()}')
+        extra_fields.setdefault('addresse', 'Adresse administrative')
+        extra_fields.setdefault('num_telephone', '0000000000')
+
+        # Validation des champs requis pour un superutilisateur
         if extra_fields.get('is_staff') is not True:
             raise ValueError('Superuser must have is_staff=True.')
         if extra_fields.get('is_superuser') is not True:
             raise ValueError('Superuser must have is_superuser=True.')
 
-        return self.create_user(email, password, **extra_fields)
+        # Création de l'utilisateur
+        user = self.create_user(email, password, **extra_fields)
+        
+        # Association au groupe super_administrateurs
+        try:
+            admin_group = Group.objects.get(name='super_administrateurs')
+            user.groups.add(admin_group)
+        except Group.DoesNotExist:
+            raise ValueError("Le groupe 'super_administrateurs' n'existe pas. Veuillez le créer d'abord.")
 
+        return user
 class User(AbstractUser):
     id = models.AutoField(primary_key=True)
     username = models.CharField(max_length=50, blank=True, null=True, unique=True)

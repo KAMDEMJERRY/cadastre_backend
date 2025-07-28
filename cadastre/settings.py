@@ -29,7 +29,7 @@ SECRET_KEY = 'django-insecure-*n%6^hez8tcw2%@vfw0cau($80b+e#tyrb-jwfp@%%8zvimqt#
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
+CORS_ALLOWED_ORIGINS = ["http://localhost:3000"]  # URL de Next.js
 
 # Application definition
 
@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'drf_yasg',
     'account',
     'lotissement',
+    'corsheaders',
 ]
 
 AUTH_USER_MODEL= 'account.User'
@@ -92,6 +93,7 @@ SWAGGER_SETTINGS = {
 ALLOWED_HOSTS = ['*']  # Change this in production!
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
