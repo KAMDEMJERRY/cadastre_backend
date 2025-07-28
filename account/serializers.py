@@ -35,7 +35,7 @@ class UserSerializer(serializers.ModelSerializer):
             return 'proprietaire'
 
     def get_full_name(self, obj):
-        return f"{obj.prenom} {obj.nom}" if obj.prenom and obj.nom else obj.username
+        return f"{obj.first_name} {obj.last_name}" if obj.first_name and obj.last_name else obj.username
 
     def validate_email(self, value):
         """Validation personnalisée de l'email"""
