@@ -4,9 +4,10 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from .models import IsAdministrateurCadastral, IsProprietaire, IsSuperAdministrateur
+from .models import IsAdministrateurCadastral, IsAdministrateurCadastralOrSuperAdmin, IsProprietaire, IsSuperAdministrateur
 from .serializers import UserSerializer, UserCreateSerializer, UserUpdateSerializer
 from django.contrib.auth import get_user_model
+
 User = get_user_model()
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -35,11 +36,11 @@ class UserViewSet(viewsets.ModelViewSet):
         
         elif self.action == 'create':
             # Seuls les admins cadastraux ou superadmins peuvent créer
-            return [IsAuthenticated(), IsAdministrateurCadastral() | IsSuperAdministrateur()]
+            return [IsAuthenticated(), IsAdministrateurCadastralOrSuperAdmin()]
         
         elif self.action in ['update', 'partial_update', 'destroy']:
             # Admin cadastraux et superadmins uniquement
-            return [IsAuthenticated(), IsAdministrateurCadastral() | IsSuperAdministrateur()]
+            return [IsAuthenticated(), IsAdministrateurCadastralOrSuperAdmin()]
         
         elif self.action == 'export_pdf':
             # Seuls les propriétaires peuvent exporter leur propre parcelle
@@ -57,7 +58,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
     # Filtrage avancé
     def get_queryset(self):
-        queryset = User.object.all()
+        queryset = User.objects.all()
         search = self.request.query_params.get('search')
         
         if search:

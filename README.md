@@ -36,3 +36,41 @@ apt-get install -y postgresql-14-postgis-3 postgresql-14-postgis-3-scripts
 ### Creer une branche de travaille
 - git checkout -b ft/functionalite
 
+###################################################
+
+## Configuration pour les tests
+
+
+### 1. Modifier le script _setup_test_db.sh_ 
+DB_USER="votre_nom_utilisateur_postgresql"  # Remplacez par votre utilisateur
+
+### 2. Rendre le script executable et l'executer
+- Rendre exécutable
+chmod +x setup_test_db.sh
+
+- Exécuter le script
+./setup_test_db.sh
+
+### 3. Executer les tests
+
+``` bash
+
+# Méthode 1 : Avec le script automatique
+./run_tests.sh
+
+# Méthode 2 : Directement avec Django
+python manage.py test --settings=cadastre.settings_test
+
+# Méthode 3 : Tests spécifiques
+python manage.py test your_app.tests.test_models --settings=cadastre.settings_test
+
+# Méthode 4 : Tests avec verbosité
+python manage.py test --settings=cadastre.settings_test --verbosity=2 
+
+```
+
+### 4 Nettoyer apres les tests(optionnel)
+```bash
+# Supprimer la base de données de test
+./cleanup_test_db.sh 
+```

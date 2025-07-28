@@ -2,7 +2,7 @@ from argparse import Action
 from django.shortcuts import get_object_or_404, render
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
-from account.models import IsAdministrateurCadastral, IsProprietaire, IsSuperAdministrateur, User
+from account.models import IsAdministrateurCadastral, IsAdministrateurCadastralOrSuperAdmin, IsProprietaire, IsSuperAdministrateur, User
 from lotissement.models import Bloc, Lotissement, Parcelle, Rue
 from lotissement.serializers import BlocSerializer, LotissementSerializer, ParcelleSerializer, RueSerializer
 from rest_framework.decorators import action
@@ -16,7 +16,7 @@ class LotissementViewSet(viewsets.ModelViewSet):
         if self.action in ['list', 'retrieve']:
             return [IsAuthenticated()]
         elif self.action in ['create', 'update', 'partial_update', 'destroy']:
-            return [IsAuthenticated(), IsAdministrateurCadastral() | IsSuperAdministrateur()]
+            return [IsAuthenticated(), IsAdministrateurCadastralOrSuperAdmin()]
         return [IsAuthenticated()]
 
     
@@ -27,7 +27,7 @@ class BlocViewSet(viewsets.ModelViewSet):
         if self.action in ['list', 'retrieve']:
             return [IsAuthenticated()]
         elif self.action in ['create', 'update', 'partial_update', 'destroy']:
-            return [IsAuthenticated(), IsAdministrateurCadastral() | IsSuperAdministrateur()]
+            return [IsAuthenticated(), IsAdministrateurCadastralOrSuperAdmin()]
         return [IsAuthenticated()]
 
 
@@ -39,16 +39,16 @@ class ParcelleViewSet(viewsets.ModelViewSet):
             return [IsAuthenticated()]
         
         elif self.action == 'create':
-            return [IsAuthenticated(), IsAdministrateurCadastral() | IsSuperAdministrateur()]
+            return [IsAuthenticated(), IsAdministrateurCadastralOrSuperAdmin()]
         
         elif self.action in ['update', 'partial_update', 'destroy']:
-            return [IsAuthenticated(), IsAdministrateurCadastral() | IsSuperAdministrateur()]
+            return [IsAuthenticated(), IsAdministrateurCadastralOrSuperAdmin()]
         
         elif self.action == 'mes_parcelles':
             return [IsAuthenticated(), IsProprietaire()]
         
         elif self.action == 'parcelles_utilisateur':
-            return [IsAuthenticated(), IsAdministrateurCadastral() | IsSuperAdministrateur()]
+            return [IsAuthenticated(), IsAdministrateurCadastralOrSuperAdmin()]
         
         return [IsAuthenticated()]
 

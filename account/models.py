@@ -93,3 +93,13 @@ class IsAdministrateurCadastral(BasePermission):
 class IsProprietaire(BasePermission):
     def has_permission(self, request, view):
         return request.user and request.user.groups.filter(name='proprietaires').exists()
+
+
+class IsAdministrateurCadastralOrSuperAdmin(BasePermission):
+    def has_permission(self, request, view):
+        user = request.user
+        return user and user.is_authenticated and (
+            user.groups.filter(name='AdministrateurCadastral').exists() or
+            user.groups.filter(name='SuperAdministrateur').exists()
+        )
+
