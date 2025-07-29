@@ -39,6 +39,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/accounts/login', jwt_views.TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/accounts/refresh', jwt_views.TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/accounts/logout', jwt_views.TokenBlacklistView.as_view(), name='token_blacklist'),
+    
     path('api/accounts/', include('account.urls')),
     path('api/cadastre/', include('lotissement.urls')),
     # Swagger URLs
