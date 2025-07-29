@@ -50,12 +50,12 @@ class CustomUserManager(BaseUserManager):
         return user
 class User(AbstractUser):
     id = models.AutoField(primary_key=True)
-    username = models.CharField(max_length=50, blank=True, null=True, unique=True)
+    username = models.CharField(max_length=50, blank=True, null=True, unique=False)
     email = models.EmailField('email address', unique=True)
 
     genre = models.CharField('Genre', max_length=10, choices=[('M', 'Male'), ('F', 'Female')], default='M')
     date_naissance = models.DateField(blank=True, null=True)
-    id_cadastrale = models.CharField(max_length=50, unique=True, blank=True)
+    id_cadastrale = models.CharField(max_length=50, unique=True, blank=False)
     num_cni = models.CharField(max_length=50, unique=True, null=True, blank=True)
     addresse = models.CharField(max_length=50, unique=True, null=True)
     num_tel_regex = RegexValidator(regex=r'^6\d{8}$', message="Le numéro doit contenir exactement 9 chiffres et commencer par 6.")
