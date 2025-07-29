@@ -7,7 +7,8 @@ from rest_framework.permissions import IsAuthenticated
 from .models import IsAdministrateurCadastral, IsAdministrateurCadastralOrSuperAdmin, IsProprietaire, IsSuperAdministrateur
 from .serializers import UserSerializer, UserCreateSerializer, UserUpdateSerializer
 from django.contrib.auth import get_user_model
-
+from django.contrib.auth.models import Group
+from django.db.models import Count
 User = get_user_model()
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -79,14 +80,14 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    @action(detail=False, methods=['GET'], permission_classes=[IsAdministrateurCadastral])
+    @action(detail=False, methods=['GET'], permission_classes=[IsAdministrateurCadastralOrSuperAdmin])
     def organizations(self, request):
         """Liste des organisations"""
         queryset = self.filter_queryset(self.get_queryset().filter(account_type='ORG'))
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    @action(detail=True, methods=['POST'], permission_classes=[IsAdministrateurCadastral])
+    @action(detail=True, methods=['POST'], permission_classes=[IsAdministrateurCadastralOrSuperAdmin])
     def activate(self, request, pk=None):
         """Activer un compte utilisateur"""
         user = self.get_object()
@@ -97,12 +98,12 @@ class UserViewSet(viewsets.ModelViewSet):
             status=status.HTTP_200_OK
         )
 
-    @action(detail=True, methods=['POST'], permission_classes=[IsAdministrateurCadastral])
+    @action(detail=True, methods=['POST'], permission_classes=[IsAdministrateurCadastralOrSuperAdmin])
     def deactivate(self, request, pk=None):
         """Désactiver un compte utilisateur"""
         user = self.get_object()
-        if not user.has_permission(IsSuperAdministrateur)\
-        or request.user.has_permission(IsSuperAdministrateur):
+        if not user.groups.filter(name='super_administrateurs')\
+        or request.user.has_permission('super_administrateurs'):
             user.is_active = False
         else:
             return HttpResponseForbidden("Vous n'avez pas la permission !")
@@ -127,17 +128,18 @@ class UserViewSet(viewsets.ModelViewSet):
             'female': queryset.filter(genre='F').count(),
             'domaines': dict(queryset.exclude(domaine__isnull=True)
                            .values_list('domaine')
-                           .annotate(count=models.Count('domaine')))
+                           .annotate(count=Count('domaine')))
         }
         
         return Response(stats)
+    
     @action(detail=True, methods=['post'], permission_classes=[IsSuperAdministrateur])
     def assign_role(self, request, pk=None):
         """
         Attribue un rôle à un utilisateur (accessible uniquement par les superusers)
         Requête POST attendue: {'role': 'nom_du_role'}
         """
-        user = self.get_object(pk=pk)
+        user = self.get_object()
         current_user = request.user
 
         # Vérifier que l'utilisateur actuel est superuser
@@ -155,8 +157,8 @@ class UserViewSet(viewsets.ModelViewSet):
             )
 
         try:
-            group = Group.objects.get(name=role_name)
-        except Group.DoesNotExist:
+            group = Group.objects.get(name=role_name)  # Correction ici
+        except Group.DoesNotExist:  # Correction ici
             return Response(
                 {"error": f"Le rôle '{role_name}' n'existe pas"},
                 status=status.HTTP_404_NOT_FOUND
@@ -173,7 +175,7 @@ class UserViewSet(viewsets.ModelViewSet):
             },
             status=status.HTTP_200_OK
         )
-    
+        
     @action(detail=False, methods=['get'],permission_classes=[IsAuthenticated])
     def me(self, request):
         serializer = self.get_serializer(request.user)

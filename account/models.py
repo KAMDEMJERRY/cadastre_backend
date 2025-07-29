@@ -29,7 +29,7 @@ class CustomUserManager(BaseUserManager):
         extra_fields.setdefault('username', default_username)
         extra_fields.setdefault('num_cni', f'ADMIN_CNI_{email[:5].upper()}')
         extra_fields.setdefault('addresse', 'Adresse administrative')
-        extra_fields.setdefault('num_telephone', '0000000000')
+        extra_fields.setdefault('num_telephone', '000000000')
 
         # Validation des champs requis pour un superutilisateur
         if extra_fields.get('is_staff') is not True:

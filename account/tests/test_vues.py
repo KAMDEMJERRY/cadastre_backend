@@ -1,3 +1,4 @@
+from datetime import date
 import json
 from urllib import request
 from django.test import TestCase
@@ -344,9 +345,21 @@ class UserViewSetTestCase(APITestCase):
         """Test avec un token JWT expiré"""
         # Créer un token avec une durée de vie très courte
         refresh = RefreshToken.for_user(self.user_normal)
-        refresh['exp'] = refresh['exp'] - 3600  # Expirer il y a 1 heure
+        expired_token = str(refresh.access_token)
         
-        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
+        # Manipuler manuellement le token pour le faire expirer
+        import jwt
+        from django.conf import settings
+        from jwt import ExpiredSignatureError
+        
+        # Décoder le token pour modifier sa date d'expiration
+        payload = jwt.decode(expired_token, settings.SECRET_KEY, algorithms=['HS256'], options={'verify_exp': False})
+        payload['exp'] = payload['iat'] - 3600  # Expirer il y a 1 heure
+        
+        # Recréer un token avec la nouvelle payload expirée
+        expired_token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
+        
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {expired_token}')
         response = self.client.get(self.users_url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
@@ -362,7 +375,15 @@ class UserModelTestCase(TestCase):
         self.user_data = {
             'username': 'testuser',
             'email': 'test@example.com',
-            'password': 'testpassword123'
+            'password': 'testpassword123',
+            'first_name': "jack",
+            'last_name' : "emmanuel",
+            'genre' : 'M',
+            'date_naissance': date(1999, 2, 12),
+            'id_cadastrale' : "ADMIN12332145",
+            'addresse' : 'Melen',
+            'account_type' : 'IND',
+            'num_telephone': '612345678'
         }
 
     def test_create_user(self):
