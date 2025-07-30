@@ -110,31 +110,60 @@ class UserViewSetTestCase(APITestCase):
 
     def test_create_user_admin_cadastral(self):
         """Test de création d'utilisateur par admin cadastral"""
+        # Vérifier que l'utilisateur admin_cadastral existe
+        self.assertIsNotNone(self.admin_cadastral)
+        print(f"Admin cadastral: {self.admin_cadastral.username}")
+        print(f"Admin cadastral permissions: {list(self.admin_cadastral.user_permissions.all())}")
+        print(f"Admin cadastral groups: {list(self.admin_cadastral.groups.all())}")
+        
         self.authenticate_user(self.admin_cadastral)
+        
+        # Vérifier l'authentification
+        self.assertTrue(self.admin_cadastral.is_authenticated)
+
+        user_data = {
+            'username': 'newuser',
+            'email': 'newuser@test.com',
+            'password': 'newpassword123',
+            'account_type': 'IND',
+            'genre': 'M',
+            'id_cadastrale': 'CAD12345'  # Champ requis manquant
+         }
+        
+        print(f"User data to send: {user_data}")
+        print(f"URL: {self.users_url}")
+
+        response = self.client.post(self.users_url, user_data, format='json')
+        
+        # Debug détaillé
+        print(f"Response status: {response.status_code}")
+        print(f"Response data: {response.data}")
+        print(f"Response headers: {dict(response.items())}")
+        
+        # Vérifier si l'utilisateur existe déjà
+        existing_user = User.objects.filter(username='newuser').first()
+        if existing_user:
+            print(f"User with username 'newuser' already exists: {existing_user}")
+        
+        existing_email = User.objects.filter(email='newuser@test.com').first()
+        if existing_email:
+            print(f"User with email 'newuser@test.com' already exists: {existing_email}")
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(User.objects.filter(email='newuser@test.com').exists())
+        
+    def test_create_user_super_admin(self):
+        """Test de création d'utilisateur par super admin"""
+        self.authenticate_user(self.super_admin)
         
         user_data = {
             'username': 'newuser',
             'email': 'newuser@test.com',
             'password': 'newpassword123',
             'account_type': 'IND',
-            'genre': 'M'
-        }
-        
-        response = self.client.post(self.users_url, user_data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(User.objects.filter(email='newuser@test.com').exists())
-
-    def test_create_user_super_admin(self):
-        """Test de création d'utilisateur par super admin"""
-        self.authenticate_user(self.super_admin)
-        
-        user_data = {
-            'username': 'superuser',
-            'email': 'superuser@test.com',
-            'password': 'superpassword123',
-            'account_type': 'ORG',
-            'nom_organization': 'Super Org'
-        }
+            'genre': 'M',
+            'id_cadastrale': 'CAD12345'  # Champ requis manquant
+         }
         
         response = self.client.post(self.users_url, user_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)

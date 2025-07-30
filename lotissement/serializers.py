@@ -9,7 +9,7 @@ class LotissementSerializer(GeoFeatureModelSerializer):
         fields = '__all__'
 
 class BlocSerializer(GeoFeatureModelSerializer):
-    lotissement = LotissementSerializer(read_only=True)
+    bloc_lotissement = serializers.PrimaryKeyRelatedField(queryset=Lotissement.objects.all())
     class Meta:
         model = Bloc
         geo_field = 'geom'
@@ -23,8 +23,11 @@ class RueSerializer(GeoFeatureModelSerializer):
 
 
 class ParcelleSerializer(GeoFeatureModelSerializer):
-    bloc = BlocSerializer(read_only=True)
-    proprietaire = serializers.StringRelatedField()  # ou utilise un UserSerializer si besoin
+    bloc = serializers.PrimaryKeyRelatedField(source='parcelle_bloc', read_only=True)
+    proprietaire = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(),
+        required=True  # S'assure que le champ est obligatoire
+    ) # ou utilise un UserSerializer si besoin
 
     class Meta:
         model = Parcelle

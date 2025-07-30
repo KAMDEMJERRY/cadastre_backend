@@ -1,7 +1,6 @@
 # settings_test.py
 import sys
 from .settings import *
-import os
 from decouple import Config, RepositoryEnv
 
 # Chemin vers votre fichier .env personnalisé

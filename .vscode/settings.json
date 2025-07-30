@@ -1,7 +1,13 @@
 {
     "python.testing.pytestArgs": [
-        "account"
+        ".",
+        "--no-header",
+        "--verbose",
+        "--capture=no"
     ],
     "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true
+    "python.testing.pytestEnabled": true,
+    "testing.autoRun": {
+        "onSave": false  // Désactive l'exécution automatique pour éviter des ralentissements
+    }
 }
