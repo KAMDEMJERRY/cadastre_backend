@@ -112,7 +112,8 @@ class IsAdministrateurCadastralOrSuperAdmin(BasePermission):
     def has_permission(self, request, view):
         user = request.user
         return user and user.is_authenticated and (
-            user.groups.filter(name='AdministrateurCadastral').exists() or
-            user.groups.filter(name='SuperAdministrateur').exists()
+            user.groups.filter(name='administrateurs_cadastraux').exists() or
+            user.groups.filter(name='super_administrateurs').exists() or
+            user.is_superuser  # Ajout de cette condition pour être sûr
         )
 

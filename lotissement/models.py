@@ -4,7 +4,7 @@ from django.contrib.gis.db import models as gis_models
 from account.models import User
 
 class Geometry(models.Model):
-    longeur = models.FloatField()
+    longeur = models.FloatField(default=0, null=True);
     superficie_m2 = models.FloatField(default=0, verbose_name="Superficie (m²)")
     perimetre_m = models.FloatField(default=0, verbose_name="Périmètre (m)")
     geom = gis_models.PolygonField(srid=4326, verbose_name="Polygone de la parcelle", null=True)
@@ -14,7 +14,7 @@ class Geometry(models.Model):
     
 # Create your models here.
 class Lotissement(Geometry):
-    name = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=100, blank=True, unique=True)
     addresse = models.CharField(null=True)
     description = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
