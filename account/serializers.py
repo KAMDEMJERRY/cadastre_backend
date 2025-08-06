@@ -60,18 +60,19 @@ class UserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Le numéro doit commencer par 6 et contenir 9 chiffres.")
         return value
 
-
 class UserCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
+            'id',  # Ajoutez ce champ
             'username', 'email', 'genre', 'date_naissance',
             'id_cadastrale', 'num_cni', 'addresse', 'num_telephone',
             'account_type', 'domaine', 'nom_organization', 'password'
         ]
         extra_kwargs = {
             'password': {'write_only': True},
-            'num_telephone': {'validators': []}
+            'num_telephone': {'validators': []},
+            'id': {'read_only': True}  # Important pour la création
         }
 
     def create(self, validated_data):
@@ -79,8 +80,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
         user = User(**validated_data)
         user.set_password(password)
         user.save()
-        return user
-
+        return user  # Retourne l'instance avec l'ID
 
 class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
