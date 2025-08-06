@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'drf_yasg',
     'account',
     'lotissement',
+    'pdf_generator',
     'corsheaders',
 ]
 
