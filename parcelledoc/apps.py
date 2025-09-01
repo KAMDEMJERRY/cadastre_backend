@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class PdfGeneratorConfig(AppConfig):
+class ParcelledocConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'pdf_generator'
+    name = 'parcelledoc'
