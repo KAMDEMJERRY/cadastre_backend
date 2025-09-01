@@ -60,18 +60,19 @@ class UserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Le numéro doit commencer par 6 et contenir 9 chiffres.")
         return value
 
-
 class UserCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
+            'id',  # Ajoutez ce champ
             'username', 'email', 'genre', 'date_naissance',
             'id_cadastrale', 'num_cni', 'addresse', 'num_telephone',
             'account_type', 'domaine', 'nom_organization', 'password'
         ]
         extra_kwargs = {
             'password': {'write_only': True},
-            'num_telephone': {'validators': []}
+            # 'num_telephone': {'validators': []},
+            # 'id': {'read_only': True}  # Important pour la création
         }
 
     def create(self, validated_data):
@@ -79,8 +80,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
         user = User(**validated_data)
         user.set_password(password)
         user.save()
-        return user
-
+        return user  # Retourne l'instance avec l'ID
 
 class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
@@ -91,12 +91,31 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         ]
         extra_kwargs = {
             'email': {'required': False},
-            'username': {'required': False}
+            'username': {'required': False},
+            'genre': {'required': False},
+            'date_naissance': {'required': False},
+            'addresse': {'required': False},
+            'num_telephone': {'required': False},
+            'domaine': {'required': False},
+            'nom_organization': {'required': False}
         }
 
+    def validate_username(self, value):
+        """Validation personnalisée pour le username"""
+        if value and User.objects.exclude(pk=self.instance.pk).filter(username=value).exists():
+            raise serializers.ValidationError("Ce nom d'utilisateur est déjà pris.")
+        return value
+
+    def validate_email(self, value):
+        """Validation personnalisée pour l'email"""
+        if value and User.objects.exclude(pk=self.instance.pk).filter(email=value).exists():
+            raise serializers.ValidationError("Cet email est déjà utilisé.")
+        return value
+
     def update(self, instance, validated_data):
-        # Permet la mise à jour partielle
+        # Mise à jour partielle avec gestion des champs vides
         for attr, value in validated_data.items():
-            setattr(instance, attr, value)
+            if value is not None:  # Ne met à jour que les champs non nuls
+                setattr(instance, attr, value)
         instance.save()
         return instance

@@ -57,7 +57,7 @@ class User(AbstractUser):
     date_naissance = models.DateField(blank=True, null=True)
     id_cadastrale = models.CharField(max_length=50, unique=True, blank=False)
     num_cni = models.CharField(max_length=50, unique=True, null=True, blank=True)
-    addresse = models.CharField(max_length=50, unique=True, null=True)
+    addresse = models.CharField(max_length=50, unique=False, null=True)
     num_tel_regex = RegexValidator(regex=r'^6\d{8}$', message="Le numéro doit contenir exactement 9 chiffres et commencer par 6.")
     num_telephone = models.CharField('Telephone', max_length=9, validators=[num_tel_regex], unique=True, null=True)
     
@@ -97,7 +97,7 @@ class User(AbstractUser):
     objects = CustomUserManager()
 class IsSuperAdministrateur(BasePermission):
     def has_permission(self, request, view):
-        return request.user and request.user.groups.filter(name='super_administrateurs').exists()
+        return request.user and (request.user.groups.filter(name='super_administrateurs').exists() or request.user.is_superuser)
 
 class IsAdministrateurCadastral(BasePermission):
     def has_permission(self, request, view):
