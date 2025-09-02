@@ -85,6 +85,25 @@ class UserCreateSerializer(serializers.ModelSerializer):
 class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
+        fields = ['username', 'email', 'genre', 'date_naissance', 'addresse', 'num_telephone', 'domaine', 'nom_organization']
+    
+    def validate(self, attrs):
+        print("VALIDATION UserUpdateSerializer - données:", attrs)
+        return attrs
+    
+    def update(self, instance, validated_data):
+        print("UPDATE UserUpdateSerializer - validated_data:", validated_data)
+        print("Avant update - username:", instance.username)
+        
+        for attr, value in validated_data.items():
+            if value is not None:
+                setattr(instance, attr, value)
+        
+        instance.save()
+        print("Après update - username:", instance.username)
+        return instance
+    class Meta:
+        model = User
         fields = [
             'username', 'email', 'genre', 'date_naissance',
             'addresse', 'num_telephone', 'domaine', 'nom_organization'
