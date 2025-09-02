@@ -28,7 +28,11 @@ SECRET_KEY = 'django-insecure-*n%6^hez8tcw2%@vfw0cau($80b+e#tyrb-jwfp@%%8zvimqt#
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '.onrender.com',
+]
 CORS_ALLOWED_ORIGINS = ["http://localhost:3000"]  # URL de Next.js
 
 # Application definition
@@ -45,7 +49,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
-    # 'django_filters',
+    'django_filters',
     'drf_yasg',
     'account',
     'lotissement',
