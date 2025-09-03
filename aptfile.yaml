@@ -1,0 +1,8 @@
+# aptfile.yml
+packages:
+  - libgdal-dev
+  - gdal-bin
+  - binutils
+  - libproj-dev
+  - proj-data
+  - proj-bin

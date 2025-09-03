@@ -94,7 +94,11 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
     
-def update(self, request, *args, **kwargs):
+
+
+
+
+    def update(self, request, *args, **kwargs):
         # Afficher les données reçues
         print("=" * 50)
         print("MISE À JOUR UTILISATEUR")
