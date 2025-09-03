@@ -1,0 +1,9 @@
+.env
+.note.md
+venv/
+db.sqlite3
+# Python
+__pycache__/
+*.py[cod]
+user_stories.md
+create_users.py

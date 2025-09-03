@@ -1,0 +1,65 @@
+from django.db import models
+from django.contrib.gis.db import models as gis_models
+
+from account.models import User
+
+class Geometry(models.Model):
+    longeur = models.FloatField(default=0, null=True);
+    superficie_m2 = models.FloatField(default=0, verbose_name="Superficie (m²)")
+    perimetre_m = models.FloatField(default=0, verbose_name="Périmètre (m)")
+    geom = gis_models.PolygonField(srid=4326, verbose_name="Polygone de la parcelle", null=True)
+    
+    class Meta:
+        abstract=True
+    
+# Create your models here.
+class Lotissement(Geometry):
+    name = models.CharField(max_length=100, blank=True, unique=True)
+    addresse = models.CharField(null=True)
+    description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name + "_" + self.addresse 
+
+    class Meta:
+        verbose_name = "Lotissement"
+        verbose_name_plural = "Lotissements"
+        ordering = ['name']
+
+class Bloc(Geometry):
+    id = models.AutoField(primary_key=True) 
+    name = models.CharField(max_length=100, unique=False, null=True)
+    bloc_lotissement = models.ForeignKey(Lotissement, on_delete=models.CASCADE)
+    description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    def __str__(self):
+      return f"Bloc {self.name} - {self.bloc_lotissement.name}"
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['name', 'bloc_lotissement'],
+                name='unique_bloc_per_lotissement'
+            )
+        ]
+        ordering = ['name'] 
+
+class Parcelle(Geometry):
+    name = models.CharField(max_length=100, unique=False, null=True)
+    parcelle_bloc = models.ForeignKey(Bloc, on_delete=models.CASCADE, related_name='parcelles')
+    proprietaire = models.ForeignKey(User, on_delete=models.CASCADE, null=False, blank=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        ordering = ['name']
+
+class Rue(Geometry):
+    name = models.CharField(max_length=100, unique=False)
+    created_at = models.DateTimeField(auto_now_add=True)  # Ajoutez ceci
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['name']
+       

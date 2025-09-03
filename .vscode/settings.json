@@ -1,0 +1,13 @@
+{
+    "python.testing.pytestArgs": [
+        ".",
+        "--no-header",
+        "--verbose",
+        "--capture=no"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true,
+    "testing.autoRun": {
+        "onSave": false  // Désactive l'exécution automatique pour éviter des ralentissements
+    }
+}

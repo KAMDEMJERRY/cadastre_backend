@@ -1,0 +1,140 @@
+from rest_framework import serializers
+from .models import User
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
+
+class UserSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+    account_type_display = serializers.CharField(source='get_account_type_display', read_only=True)
+    genre_display = serializers.CharField(source='get_genre_display', read_only=True)
+    role = serializers.SerializerMethodField()
+    class Meta:
+        model = User
+        fields = [
+            'id', 'username', 'email', 'genre', 'genre_display', 'date_naissance',
+            'id_cadastrale', 'num_cni', 'addresse', 'num_telephone',
+            'account_type', 'account_type_display', 'domaine', 'nom_organization',
+            'is_active', 'date_joined', 'last_login', 'full_name', 'role'
+        ]
+        read_only_fields = [
+            'id', 'date_joined', 'last_login', 'account_type_display',
+            'genre_display', 'full_name', 'role'
+        ]
+        extra_kwargs = {
+            'num_telephone': {'validators': []},  # Désactive la validation par défaut pour permettre la mise à jour
+            'num_cni': {'validators': []},
+            'id_cadastrale': {'validators': []}
+        }
+
+    def get_role(self, obj):
+        if obj is None or not hasattr(obj, 'groups'):
+            return 'proprietaire'
+
+        try:
+            groups = set(obj.groups.values_list('name', flat=True))
+            if 'super_administrateurs' in groups:
+                return 'admin'
+            if 'administrateurs_cadastraux' in groups:
+                return 'agent'
+        except (AttributeError, ValueError):
+            pass
+
+        return 'proprietaire'
+
+    def get_full_name(self, obj):
+        return f"{obj.first_name} {obj.last_name}" if obj.first_name and obj.last_name else obj.username
+
+    def validate_email(self, value):
+        """Validation personnalisée de l'email"""
+        if self.instance and User.objects.filter(email=value).exclude(pk=self.instance.pk).exists():
+            raise serializers.ValidationError("Cet email est déjà utilisé.")
+        try:
+            validate_email(value)
+        except ValidationError:
+            raise serializers.ValidationError("Format d'email invalide.")
+        return value
+
+    def validate_num_telephone(self, value):
+        """Validation du numéro de téléphone"""
+        if not value.startswith('6') or len(value) != 9 or not value.isdigit():
+            raise serializers.ValidationError("Le numéro doit commencer par 6 et contenir 9 chiffres.")
+        return value
+
+class UserCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            'id',  # Ajoutez ce champ
+            'username', 'email', 'genre', 'date_naissance',
+            'id_cadastrale', 'num_cni', 'addresse', 'num_telephone',
+            'account_type', 'domaine', 'nom_organization', 'password'
+        ]
+        extra_kwargs = {
+            'password': {'write_only': True},
+            # 'num_telephone': {'validators': []},
+            # 'id': {'read_only': True}  # Important pour la création
+        }
+
+    def create(self, validated_data):
+        password = validated_data.pop('password')
+        user = User(**validated_data)
+        user.set_password(password)
+        user.save()
+        return user  # Retourne l'instance avec l'ID
+
+class UserUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'genre', 'date_naissance', 'addresse', 'num_telephone', 'domaine', 'nom_organization']
+    
+    def validate(self, attrs):
+        print("VALIDATION UserUpdateSerializer - données:", attrs)
+        return attrs
+    
+    def update(self, instance, validated_data):
+        print("UPDATE UserUpdateSerializer - validated_data:", validated_data)
+        print("Avant update - username:", instance.username)
+        
+        for attr, value in validated_data.items():
+            if value is not None:
+                setattr(instance, attr, value)
+        
+        instance.save()
+        print("Après update - username:", instance.username)
+        return instance
+    class Meta:
+        model = User
+        fields = [
+            'username', 'email', 'genre', 'date_naissance',
+            'addresse', 'num_telephone', 'domaine', 'nom_organization'
+        ]
+        extra_kwargs = {
+            'email': {'required': False},
+            'username': {'required': False},
+            'genre': {'required': False},
+            'date_naissance': {'required': False},
+            'addresse': {'required': False},
+            'num_telephone': {'required': False},
+            'domaine': {'required': False},
+            'nom_organization': {'required': False}
+        }
+
+    def validate_username(self, value):
+        """Validation personnalisée pour le username"""
+        if value and User.objects.exclude(pk=self.instance.pk).filter(username=value).exists():
+            raise serializers.ValidationError("Ce nom d'utilisateur est déjà pris.")
+        return value
+
+    def validate_email(self, value):
+        """Validation personnalisée pour l'email"""
+        if value and User.objects.exclude(pk=self.instance.pk).filter(email=value).exists():
+            raise serializers.ValidationError("Cet email est déjà utilisé.")
+        return value
+
+    def update(self, instance, validated_data):
+        # Mise à jour partielle avec gestion des champs vides
+        for attr, value in validated_data.items():
+            if value is not None:  # Ne met à jour que les champs non nuls
+                setattr(instance, attr, value)
+        instance.save()
+        return instance
