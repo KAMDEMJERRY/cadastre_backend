@@ -33,13 +33,46 @@ ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
     '.onrender.com',
+    'cadastre-web-zaor.vercel.app'
     'cadastre-backend-3whj.onrender.com',
+    '.vercel.app',
+    '.now.sh',
 ]
-
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "https://cadastre-backend-3whj.onrender.com",
+    "https://*.vercel.app",
+    "https://cadastre-web-zaor.vercel.app",
+    "https://cadastre-web-6rkb.vercel.app", 
 ]
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+# Configuration CSRF
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.vercel.app",
+    "https://cadastre-backend-3whj.onrender.com",
+]
+
 
 # Application definition
 INSTALLED_APPS = [
