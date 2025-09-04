@@ -16,31 +16,32 @@ from pathlib import Path
 from decouple import config
 import dj_database_url
 
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-*n%6^hez8tcw2%@vfw0cau($80b+e#tyrb-jwfp@%%8zvimqt#'
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-*n%6^hez8tcw2%@vfw0cau($80b+e#tyrb-jwfp@%%8zvimqt#')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
     '.onrender.com',
+    'cadastre-backend-3whj.onrender.com',
 ]
-CORS_ALLOWED_ORIGINS = ["http://localhost:3000"]  # URL de Next.js
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "https://cadastre-backend-3whj.onrender.com",
+]
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -61,7 +62,8 @@ INSTALLED_APPS = [
     'corsheaders',
 ]
 
-AUTH_USER_MODEL= 'account.User'
+AUTH_USER_MODEL = 'account.User'
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -75,36 +77,11 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20
 }
-# drf-yasg settings (if using drf-yasg)
-SWAGGER_SETTINGS = {
-    'SECURITY_DEFINITIONS': {
-        'Basic': {
-            'type': 'basic'
-        }
-    },
-    'USE_SESSION_AUTH': False,
-    'JSON_EDITOR': True,
-    'SUPPORTED_SUBMIT_METHODS': [
-        'get',
-        'post',
-        'put',
-        'delete',
-        'patch'
-    ],
-    'OPERATIONS_SORTER': 'alpha',
-    'TAGS_SORTER': 'alpha',
-    'DOC_EXPANSION': 'none',
-    'DEEP_LINKING': True,
-    'SHOW_EXTENSIONS': True,
-    'SHOW_COMMON_EXTENSIONS': True,
-}
-
-# For development - allow all hosts
-ALLOWED_HOSTS = ['*']  # Change this in production!
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -118,7 +95,7 @@ ROOT_URLCONF = 'cadastre.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -132,41 +109,58 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'cadastre.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
-
-# Database configuration pour Render
-if config('DATABASE_URL', default=''):
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=config('DATABASE_URL'),
-            conn_max_age=600,
-            conn_health_checks=True,
-            engine='django.contrib.gis.db.backends.postgis',  # ← Ajouter ceci
-        )
+# Database configuration
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': config('DB_ENGINE', default='django.db.backends.postgresql'),
-            'NAME': config('DB_NAME', default='cadastre_db'),
-            'USER': config('DB_USER', default=''),
-            'PASSWORD': config('DB_PASSWORD', default=''),
-            'HOST': config('DB_HOST', default=''),
-            'PORT': config('DB_PORT', default='5432'),
+}
+
+# Get database configuration from environment variables
+DB_ENGINE = config('DB_ENGINE', default='django.db.backends.sqlite3')
+DB_NAME = config('DB_NAME', default=BASE_DIR / 'db.sqlite3')
+DB_USER = config('DB_USER', default='')
+DB_PASSWORD = config('DB_PASSWORD', default='')
+DB_HOST = config('DB_HOST', default='')
+DB_PORT = config('DB_PORT', default='')
+
+# Use DATABASE_URL if available, otherwise use individual components
+DATABASE_URL = config('DATABASE_URL', default=None)
+
+if DATABASE_URL:
+    try:
+        db_config = dj_database_url.parse(DATABASE_URL, conn_max_age=600)
+        # Force PostGIS engine if using PostgreSQL
+        if 'postgres' in DATABASE_URL:
+            db_config['ENGINE'] = 'django.contrib.gis.db.backends.postgis'
+        DATABASES['default'] = db_config
+        print("Database configured from DATABASE_URL")
+    except Exception as e:
+        print(f"Error parsing DATABASE_URL: {e}")
+        print("Falling back to individual database settings")
+        # Fallback to individual settings
+        DATABASES['default'] = {
+            'ENGINE': DB_ENGINE,
+            'NAME': DB_NAME,
+            'USER': DB_USER,
+            'PASSWORD': DB_PASSWORD,
+            'HOST': DB_HOST,
+            'PORT': DB_PORT,
         }
+else:
+    # Use individual settings if DATABASE_URL is not provided
+    DATABASES['default'] = {
+        'ENGINE': DB_ENGINE,
+        'NAME': DB_NAME,
+        'USER': DB_USER,
+        'PASSWORD': DB_PASSWORD,
+        'HOST': DB_HOST,
+        'PORT': DB_PORT,
     }
 
-# Static files configuration pour Render
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+print(f"Database engine: {DATABASES['default']['ENGINE']}")
 # Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -190,65 +184,29 @@ SIMPLE_JWT = {
 }
 
 # Internationalization
-# https://docs.djangoproject.com/en/5.2/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
-
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
-# Configuration GDAL pour Render
 # Configuration GDAL/GEOS pour Render
-if os.environ.get('RENDER'):
-    # Essayer différents chemins possibles pour GDAL sur Render
-    GDAL_POSSIBLE_PATHS = [
-        '/usr/lib/libgdal.so',
-        '/usr/lib/x86_64-linux-gnu/libgdal.so',
-        '/usr/lib/x86_64-linux-gnu/libgdal.so.32',
-        '/usr/lib/x86_64-linux-gnu/libgdal.so.31',
-        '/usr/lib/x86_64-linux-gnu/libgdal.so.30',
-        '/usr/local/lib/libgdal.so',
-    ]
+if config('RENDER', default=False, cast=bool):
+    # Configuration pour Render
+    GDAL_LIBRARY_PATH = os.environ.get('GDAL_LIBRARY_PATH', '/usr/lib/libgdal.so')
+    GEOS_LIBRARY_PATH = os.environ.get('GEOS_LIBRARY_PATH', '/usr/lib/libgeos_c.so')
     
-    GEOS_POSSIBLE_PATHS = [
-        '/usr/lib/libgeos_c.so',
-        '/usr/lib/x86_64-linux-gnu/libgeos_c.so',
-        '/usr/lib/x86_64-linux-gnu/libgeos_c.so.1',
-        '/usr/local/lib/libgeos_c.so',
-    ]
-    
-    # Trouver le bon chemin GDAL
-    for path in GDAL_POSSIBLE_PATHS:
-        if os.path.exists(path):
-            GDAL_LIBRARY_PATH = path
-            os.environ.setdefault('GDAL_LIBRARY_PATH', path)
-            break
-    
-    # Trouver le bon chemin GEOS
-    for path in GEOS_POSSIBLE_PATHS:
-        if os.path.exists(path):
-            GEOS_LIBRARY_PATH = path
-            os.environ.setdefault('GEOS_LIBRARY_PATH', path)
-            break
-    
-    # Autres variables d'environnement pour Render
-    os.environ.setdefault('PROJ_LIB', '/usr/share/proj')
-
+    os.environ['GDAL_LIBRARY_PATH'] = GDAL_LIBRARY_PATH
+    os.environ['GEOS_LIBRARY_PATH'] = GEOS_LIBRARY_PATH
+    os.environ['PROJ_LIB'] = '/usr/share/proj'
 
 # Configuration Swagger/drf-yasg
 SWAGGER_SETTINGS = {
@@ -261,21 +219,28 @@ SWAGGER_SETTINGS = {
     },
     'USE_SESSION_AUTH': False,
     'JSON_EDITOR': True,
-    'SUPPORTED_SUBMIT_METHODS': [
-        'get',
-        'post',
-        'put',
-        'delete',
-        'patch'
-    ],
+    'SUPPORTED_SUBMIT_METHODS': ['get', 'post', 'put', 'delete', 'patch'],
     'OPERATIONS_SORTER': 'alpha',
     'TAGS_SORTER': 'alpha',
     'DOC_EXPANSION': 'none',
     'DEEP_LINKING': True,
-    'SHOW_EXTENSIONS': True,
-    'SHOW_COMMON_EXTENSIONS': True,
 }
 
 REDOC_SETTINGS = {
     'LAZY_RENDERING': False,
+}
+
+# Logging configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING',
+    },
 }

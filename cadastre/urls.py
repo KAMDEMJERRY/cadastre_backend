@@ -15,12 +15,24 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django.http import JsonResponse
 from django.urls import include, path
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from django.urls import path, include
 from rest_framework_simplejwt import views as jwt_views
 from rest_framework.permissions import AllowAny
+
+def root_view(request):
+    return JsonResponse({
+        'message': 'Cadastre Backend API',
+        'documentation': '/swagger/',
+        'endpoints': {
+            'swagger': '/swagger/',
+            'admin': '/admin/',
+            'api': '/api/',
+        }
+    })
 
 schema_view = get_schema_view(
    openapi.Info(
