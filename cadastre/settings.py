@@ -198,11 +198,39 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Configuration GDAL/GEOS pour Render
-if config('RENDER', default=False, cast=bool):
-    # Configuration pour Render
+
+# Configuration GDAL pour Render
+if 'RENDER' in os.environ:
+    # Chemins possibles pour GDAL sur Render
     GDAL_LIBRARY_PATH = os.environ.get('GDAL_LIBRARY_PATH', '/usr/lib/libgdal.so')
     GEOS_LIBRARY_PATH = os.environ.get('GEOS_LIBRARY_PATH', '/usr/lib/libgeos_c.so')
+    
+    # Essayer différents chemins possibles
+    possible_gdal_paths = [
+        '/usr/lib/libgdal.so',
+        '/usr/lib/x86_64-linux-gnu/libgdal.so',
+        '/usr/lib/x86_64-linux-gnu/libgdal.so.32',
+        '/usr/lib/x86_64-linux-gnu/libgdal.so.31',
+        '/usr/lib/x86_64-linux-gnu/libgdal.so.30',
+    ]
+    
+    possible_geos_paths = [
+        '/usr/lib/libgeos_c.so',
+        '/usr/lib/x86_64-linux-gnu/libgeos_c.so',
+        '/usr/lib/x86_64-linux-gnu/libgeos_c.so.1',
+    ]
+    
+    # Trouver le bon chemin GDAL
+    for path in possible_gdal_paths:
+        if os.path.exists(path):
+            GDAL_LIBRARY_PATH = path
+            break
+    
+    # Trouver le bon chemin GEOS
+    for path in possible_geos_paths:
+        if os.path.exists(path):
+            GEOS_LIBRARY_PATH = path
+            break
     
     os.environ['GDAL_LIBRARY_PATH'] = GDAL_LIBRARY_PATH
     os.environ['GEOS_LIBRARY_PATH'] = GEOS_LIBRARY_PATH

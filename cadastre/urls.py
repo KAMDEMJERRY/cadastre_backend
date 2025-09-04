@@ -23,17 +23,6 @@ from django.urls import path, include
 from rest_framework_simplejwt import views as jwt_views
 from rest_framework.permissions import AllowAny
 
-def root_view(request):
-    return JsonResponse({
-        'message': 'Cadastre Backend API',
-        'documentation': '/swagger/',
-        'endpoints': {
-            'swagger': '/swagger/',
-            'admin': '/admin/',
-            'api': '/api/',
-        }
-    })
-
 schema_view = get_schema_view(
    openapi.Info(
       title="API Cadastre",
