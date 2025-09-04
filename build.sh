@@ -51,4 +51,10 @@ python manage.py collectstatic --no-input
 echo "Running database migrations..."
 python manage.py migrate
 
+echo "Creation des utilisateurs par defaut..."
+python manage.py create_default_users
+
+echo "Verification du systeme..."
+python manage.py check --deploy
+
 echo "Build completed successfully!"
