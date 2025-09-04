@@ -23,6 +23,27 @@ from django.urls import path, include
 from rest_framework_simplejwt import views as jwt_views
 from rest_framework.permissions import AllowAny
 
+# Vue pour la route racine
+def root_view(request):
+    return JsonResponse({
+        'message': 'Cadastre Backend API',
+        'version': '1.0.0',
+        'documentation': {
+            'swagger': '/swagger/',
+            'redoc': '/redoc/'
+        },
+        'authentication': {
+            'login': '/api/accounts/login',
+            'refresh': '/api/accounts/refresh',
+            'logout': '/api/accounts/logout'
+        },
+        'api_endpoints': {
+            'accounts': '/api/accounts/',
+            'cadastre': '/api/cadastre/',
+            'documents': '/api/docs/'
+        }
+    })
+
 schema_view = get_schema_view(
    openapi.Info(
       title="API Cadastre",
@@ -37,6 +58,9 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
+    # Route racine - AJOUTEZ CETTE LIGNE
+    path('', root_view, name='root'),
+    
     path('admin/', admin.site.urls),
     path('api/accounts/login', jwt_views.TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/accounts/refresh', jwt_views.TokenRefreshView.as_view(), name='token_refresh'),
@@ -45,9 +69,9 @@ urlpatterns = [
     path('api/accounts/', include('account.urls')),
     path('api/cadastre/', include('lotissement.urls')),
     path('api/docs/', include('parcelledoc.urls')),
+    
     # Swagger URLs
     path('swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 ]
-
