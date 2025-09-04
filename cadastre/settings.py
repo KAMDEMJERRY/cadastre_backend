@@ -210,3 +210,72 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# Configuration GDAL pour Render
+# Configuration GDAL/GEOS pour Render
+if os.environ.get('RENDER'):
+    # Essayer différents chemins possibles pour GDAL sur Render
+    GDAL_POSSIBLE_PATHS = [
+        '/usr/lib/libgdal.so',
+        '/usr/lib/x86_64-linux-gnu/libgdal.so',
+        '/usr/lib/x86_64-linux-gnu/libgdal.so.32',
+        '/usr/lib/x86_64-linux-gnu/libgdal.so.31',
+        '/usr/lib/x86_64-linux-gnu/libgdal.so.30',
+        '/usr/local/lib/libgdal.so',
+    ]
+    
+    GEOS_POSSIBLE_PATHS = [
+        '/usr/lib/libgeos_c.so',
+        '/usr/lib/x86_64-linux-gnu/libgeos_c.so',
+        '/usr/lib/x86_64-linux-gnu/libgeos_c.so.1',
+        '/usr/local/lib/libgeos_c.so',
+    ]
+    
+    # Trouver le bon chemin GDAL
+    for path in GDAL_POSSIBLE_PATHS:
+        if os.path.exists(path):
+            GDAL_LIBRARY_PATH = path
+            os.environ.setdefault('GDAL_LIBRARY_PATH', path)
+            break
+    
+    # Trouver le bon chemin GEOS
+    for path in GEOS_POSSIBLE_PATHS:
+        if os.path.exists(path):
+            GEOS_LIBRARY_PATH = path
+            os.environ.setdefault('GEOS_LIBRARY_PATH', path)
+            break
+    
+    # Autres variables d'environnement pour Render
+    os.environ.setdefault('PROJ_LIB', '/usr/share/proj')
+
+
+# Configuration Swagger/drf-yasg
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header'
+        }
+    },
+    'USE_SESSION_AUTH': False,
+    'JSON_EDITOR': True,
+    'SUPPORTED_SUBMIT_METHODS': [
+        'get',
+        'post',
+        'put',
+        'delete',
+        'patch'
+    ],
+    'OPERATIONS_SORTER': 'alpha',
+    'TAGS_SORTER': 'alpha',
+    'DOC_EXPANSION': 'none',
+    'DEEP_LINKING': True,
+    'SHOW_EXTENSIONS': True,
+    'SHOW_COMMON_EXTENSIONS': True,
+}
+
+REDOC_SETTINGS = {
+    'LAZY_RENDERING': False,
+}

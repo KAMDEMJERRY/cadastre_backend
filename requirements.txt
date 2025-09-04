@@ -21,5 +21,4 @@ uritemplate==4.2.0
 
 gunicorn
 whitenoise[brotli]
-dj-database-
-gdal
+dj-database-url

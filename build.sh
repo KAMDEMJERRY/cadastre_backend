@@ -1,30 +1,54 @@
 #!/usr/bin/env bash
+# build.sh - Script de build pour Render (corrigé)
 set -o errexit
 
-# Install system dependencies for GDAL
-apt-get update
-apt-get install -y libgdal-dev gdal-bin binutils libproj-dev proj-data proj-bin
+echo "Setting up GDAL environment..."
+# Chercher GDAL
+GDAL_PATHS=(
+    "/usr/lib/libgdal.so"
+    "/usr/lib/x86_64-linux-gnu/libgdal.so"
+    "/usr/lib/x86_64-linux-gnu/libgdal.so.32"
+    "/usr/lib/x86_64-linux-gnu/libgdal.so.31"
+    "/usr/lib/x86_64-linux-gnu/libgdal.so.30"
+    "/usr/local/lib/libgdal.so"
+)
 
-# Install Python dependencies
+for path in "${GDAL_PATHS[@]}"; do
+    if [ -f "$path" ]; then
+        echo "Found GDAL at: $path"
+        export GDAL_LIBRARY_PATH="$path"
+        break
+    fi
+done
+
+# Chercher GEOS
+GEOS_PATHS=(
+    "/usr/lib/libgeos_c.so"
+    "/usr/lib/x86_64-linux-gnu/libgeos_c.so"
+    "/usr/lib/x86_64-linux-gnu/libgeos_c.so.1"
+    "/usr/local/lib/libgeos_c.so"
+)
+
+for path in "${GEOS_PATHS[@]}"; do
+    if [ -f "$path" ]; then
+        echo "Found GEOS at: $path"
+        export GEOS_LIBRARY_PATH="$path"
+        break
+    fi
+done
+
+export PROJ_LIB=/usr/share/proj
+export RENDER=true
+
+
+
+echo "Installing Python dependencies..."
 pip install -r requirements.txt
 
-# Configure GDAL environment
-export GDAL_LIBRARY_PATH=/usr/lib/libgdal.so
-export GEOS_LIBRARY_PATH=/usr/lib/libgeos_c.so
-
-# Collect static files
+echo "Collecting static files..."
 python manage.py collectstatic --no-input
 
-# Apply database migrations with PostGIS
+echo "Running database migrations..."
 python manage.py migrate
 
-# Create PostGIS extension if not exists
-python manage.py shell -c "
-from django.db import connection
-with connection.cursor() as cursor:
-    try:
-        cursor.execute('CREATE EXTENSION IF NOT EXISTS postgis;')
-        print('PostGIS extension created successfully')
-    except Exception as e:
-        print(f'Error creating PostGIS extension: {e}')
-"
+echo "Build completed successfully!"
