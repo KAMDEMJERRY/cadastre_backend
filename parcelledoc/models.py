@@ -4,4 +4,4 @@ from lotissement.models import Parcelle
 
 class Document(models.Model):
     parcelle = models.ForeignKey(Parcelle, on_delete=models.CASCADE)
-    document = models.CharField(max_length=100);
+    document = models.TextField()  # Supprime la limitation de longueur
